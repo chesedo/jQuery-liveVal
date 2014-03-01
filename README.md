@@ -1,9 +1,8 @@
-#jQuery-liveVal
+# jQuery-liveVal
 
+My jQuery plugin to allow live validation on form elements - uses Twitter Bootstrap v2.3.2 tooltip. This is someting I created last year for a project and still needs some work - my first jQuery plugin.
 
-My jQuery plugin to allow live validation on form elements - uses Twitter Bootstrap v2.3.2 tooltip.
-
-##USING THIS PLUGIN
+## USING THIS PLUGIN
 Simple call it on any single input - multiple not supported, eg. `$('#input-one').validate(options, checker)`
 
 ### Options
