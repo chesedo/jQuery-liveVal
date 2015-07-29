@@ -8,21 +8,16 @@
     <script src="../validation.js"></script>
     <script>
         $(function() {
-            var inputs = [];
-            inputs.push( $('#anyText').validate({required: true}, 'isText') );
-            inputs.push( $('#numbers').validate('isNumber') );
-            inputs.push( $('#alphas').validate('isAlphaNum') );
-            inputs.push( $('#email').validate('isEmail') );
+            $('form').validator();
 
-            $('#submit').click(function() {
-                for (var i = inputs.length - 1; i >= 0; i--) {
-                    if (inputs[i].getError() !== false) {
-                        alert('Errors in form!');
-                        return false;
-                    }
-                };
+            $('#submit').click(function(e) {
+                if ($('form').validator('isValid') === false) {
+                    alert('Errors in form!');
+                } else {
+                    alert('No errors found!')
+                }
 
-                alert('No errors found!')
+                e.stopPropagation();
                 return false;
             });
         });
@@ -38,27 +33,27 @@
         </p>
         <form class="form-horizontal">
             <div class="control-group">
-                <label class="control-label" for="anyText">Any normal text *</label>
+                <label class="control-label" for="anyText">Any normal text</label>
                 <div class="controls">
-                    <input type="text" id="anyText" placeholder="No numbers or special chars...">
+                    <input type="text" id="anyText" placeholder="No numbers or special chars..." required data-check="isText">
                 </div>
             </div>
             <div class="control-group">
                 <label class="control-label" for="numbers">Numbers only</label>
                 <div class="controls">
-                    <input type="text" id="numbers" placeholder="No alphas...">
+                    <input type="text" id="numbers" placeholder="No alphas..." data-check="onlyDigits">
                 </div>
             </div>
             <div class="control-group">
                 <label class="control-label" for="alphas">Alphas only</label>
                 <div class="controls">
-                    <input type="text" id="alphas" placeholder="No symbols...">
+                    <input type="text" id="alphas" placeholder="No symbols..." data-check="noSymbols">
                 </div>
             </div>
             <div class="control-group">
                 <label class="control-label" for="email">Email</label>
                 <div class="controls">
-                    <input type="text" id="email" placeholder="Will check for email">
+                    <input type="text" id="email" placeholder="Will check for email" data-check="isEmail">
                 </div>
             </div>
             <div class="control-group">
