@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>jQuery-liveVal Preview</title>
+    <link rel="stylesheet" href="bootstrap.css">
+    <link rel="stylesheet" href="bootstrap-responsive.css">
+    <script src="jquery.js"></script>
+    <script src="../validation.js"></script>
+    <script>
+        $(function() {
+            $('form').validator();
+
+            $('#submit').click(function(e) {
+                if ($('form').validator('isValid') === false) {
+                    alert('Errors in form!');
+                } else {
+                    alert('No errors found!')
+                }
+
+                e.stopPropagation();
+                return false;
+            });
+        });
+    </script>
+</head>
+<body>
+    <div class="well container">
+        <header class="page-header">
+            <h1>jQuery-liveVal Preview <small>- which should show how it works</small></h1>
+        </header>
+        <p>
+            This is a very simple preview that show what the plug-in does. Just try to type what is <strong>not</strong> allowed in each input. It's that simple ... try it!
+        </p>
+        <form class="form-horizontal">
+            <div class="control-group">
+                <label class="control-label" for="anyText">Any normal text</label>
+                <div class="controls">
+                    <input type="text" id="anyText" placeholder="No numbers or special chars..." required data-check="isText">
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="numbers">Numbers only</label>
+                <div class="controls">
+                    <input type="text" id="numbers" placeholder="No alphas..." data-check="onlyDigits">
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="alphas">Alphas only</label>
+                <div class="controls">
+                    <input type="text" id="alphas" placeholder="No symbols..." data-check="noSymbols">
+                </div>
+            </div>
+            <div class="control-group">
+                <label class="control-label" for="email">Email</label>
+                <div class="controls">
+                    <input type="text" id="email" placeholder="Will check for email" data-check="isEmail">
+                </div>
+            </div>
+            <div class="control-group">
+                <div class="controls">
+                    <button type="submit" class="btn" id="submit">Submit</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</body>
+</html>
