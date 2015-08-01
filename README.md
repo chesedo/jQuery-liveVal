@@ -3,7 +3,7 @@
 My jQuery plugin to allow live validation on form elements - uses Twitter Bootstrap v3 tooltip (also works with v2). This is something I created in 2013 for a project and still needs some work - my first jQuery plugin.
 
 ## USING THIS PLUGIN
-Simple call it on any single input, multiple inputs or block containing inputs - eg. `$(selector).validator(<options>)`
+Simple call it on any single input, multiple inputs or block containing inputs (can also check state of checkboxes) - eg. `$(selector).validator(<options>)`
 
 ### Options
 `options` should be an object used to overwrite the defaults.

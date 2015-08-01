@@ -59,52 +59,69 @@
     Plugin.prototype = {
         init: function() {
             var $e = this.$element;
-            // Setup tooltip for input
-            $e.attr('title', '').tooltip({
-                                        'placement': 'bottom',
-                                        'trigger': 'focus',
-                                        'html': true,
-                                        'animation': false
-                                    });
-            // Enable checker if needed
-            if (this.options.enableChecker && this.options.check !== undefined) {
-                this.enableChecker();
-            } else {
-                this.options.enabledChecker = false;
-            }
-            this.setRequired(this.options.required);
-
-            $e.on('blur.' + pluginName, $.proxy(function(e) {
-                e.stopPropagation();
-
-                var val  = $e.val(),
-                    valT = $.trim(val);
-                // If they are not the same then remove the extra spaces from the input
-                // This is only done if needed to prevent a loop
-                if (val != valT) {
-                    $e.val(valT);
-                }
-
-                // If value blank and required then it is missing
-                if (valT !== '') {
-                    // Check that input is still ok
-                    $e.trigger('input.' + pluginName);
-                    this.missing = false;
+            // Check if not a checkbox
+            if ($e.is('[type!="checkbox"]')) {
+                // Setup tooltip for input
+                $e.attr('title', '').tooltip({
+                                            'placement': 'bottom',
+                                            'trigger': 'focus',
+                                            'html': true,
+                                            'animation': false
+                                        });
+                // Enable checker if needed
+                if (this.options.enableChecker && this.options.check !== undefined) {
+                    this.enableChecker();
                 } else {
-                    this.missing = this.options.required;
-                    this.errors = '';
+                    this.options.enabledChecker = false;
                 }
+                this.setRequired(this.options.required);
 
-                $e.parents(this.options.parentSel).removeClass(this.options.missingClass +
-                                                                ' ' + this.options.errorClass);
-                if (this.missing) {
-                    $e.parents(this.options.parentSel).addClass(this.options.missingClass);
-                } else if (this.errors !== '') {
-                    $e.parents(this.options.parentSel).addClass(this.options.errorClass);
+                $e.on('blur.' + pluginName, $.proxy(function(e) {
+                    e.stopPropagation();
+
+                    var val  = $e.val(),
+                        valT = $.trim(val);
+                    // If they are not the same then remove the extra spaces from the input
+                    // This is only done if needed to prevent a loop
+                    if (val != valT) {
+                        $e.val(valT);
+                    }
+
+                    // If value blank and required then it is missing
+                    if (valT !== '') {
+                        // Check that input is still ok
+                        $e.trigger('input.' + pluginName);
+                        this.missing = false;
+                    } else {
+                        this.missing = this.options.required;
+                        this.errors = '';
+                    }
+
+                    $e.parents(this.options.parentSel).removeClass(this.options.missingClass +
+                                                                    ' ' + this.options.errorClass);
+                    if (this.missing) {
+                        $e.parents(this.options.parentSel).addClass(this.options.missingClass);
+                    } else if (this.errors !== '') {
+                        $e.parents(this.options.parentSel).addClass(this.options.errorClass);
+                    }
+                    // So that it doesn't hang there when input does not have focus
+                    $e.tooltip('hide');
+                }, this));
+            } else {
+                // If is a checkbox
+                this.setRequired(this.options.required);
+                if (this.options.enableChecker && this.options.check !== undefined) {
+                    this.enableChecker();
                 }
-                // So that it doesn't hang there when input does not have focus
-                $e.tooltip('hide');
-            }, this));
+                $e.on('blur.' + pluginName, $.proxy(function(e) {
+                    e.stopPropagation();
+
+                    // If unchecked and required then it is missing
+                    this.missing = $e.is(':checked') ? false : this.options.required;
+
+                    $e.parents(this.options.parentSel)[this.missing ? 'addClass' : 'removeClass'](this.options.missingClass);
+                }, this));
+            }
         },
         destroy: function() {
             var $e = this.$element;
@@ -116,10 +133,18 @@
             $e.removeData();
         },
         enableChecker: function() {
+            var $e = this.$element;
+            // Check if is checkbox
+            if ($e.is('[type="checkbox"]')) {
+                console.log('Cannnot set a check on a non-input for #' + $e.attr('id'));
+                this.options.enabledChecker = false;
+                this.options.check = null;
+                return;
+            }
+
             var check = this.options.check;
             // Check function exists before it is enables and that enable is set
             if (typeof $.fn[pluginName].checks[check] === 'function') {
-                var $e = this.$element;
                 this.options.enabledChecker = true;
                 /*
                 Input events detect autocomplete with pastes
@@ -217,7 +242,7 @@
     // Plugin constructor to prevent against multiple plugin instances
     $.fn[pluginName] = function(options) {
         var args = arguments,
-            selector = 'input[type!="radio"][type!="checkbox"], textarea';
+            selector = 'input[type!="radio"], textarea';
 
         // Filter this to only contain valid inputs
         var inputs = this.filter(selector).add(this.find(selector));
@@ -260,7 +285,7 @@
      * Default options
      */
     $.fn[pluginName].defaults = {
-        parentSel      : '.form-group' // Selector of parent to apply error classes to
+        parentSel      : '.form-group, .checkbox' // Selector of parent to apply error classes to
         ,missingClass  : 'has-error' // Class to add to parent if missing
         ,errorClass    : 'has-warning' // Class to add to parent if input has errors
         ,required      : false // Whether field is required - will detect if required prop is present
