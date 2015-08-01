@@ -311,36 +311,75 @@
      */
     $.fn[pluginName].checks = {
         noDigits    : function(val, addError) {
-                        /\d/.test(val) && addError($.fn[pluginName].errors.noDigits);
-                      },
+                        if (/\d/.test(val)) {
+                            addError($.fn[pluginName].errors.noDigits);
+                            return false;
+                        }
+
+                        return true;
+                    },
         noSymbols   : function(val, addError) {
                         // See http://unicode-table.com
-                        /[!-/:-@{-~[-`]/.test(val) && addError($.fn[pluginName].errors.noSymbols);
-                      },
+                        if (/[!-/:-@{-~[-`]/.test(val)) {
+                            addError($.fn[pluginName].errors.noSymbols);
+                            return false;
+                        }
+
+                        return true;
+                    },
         isText      : function(val, addError) {
-                        this.noDigits(val, addError);
-                        this.noSymbols(val, addError);
-                        this.noSpecial(val, addError);
-                      },
-        onlyDigits    : function(val, addError) {
-                        /\D/.test(val) && addError($.fn[pluginName].errors.onlyDigits);
-                      },
+                        return (
+                            (this.noDigits(val, addError)
+                            + this.noSymbols(val, addError)
+                            + this.noSpecial(val, addError))
+                            === 3
+                            );
+                    },
+        onlyDigits  : function(val, addError) {
+                        if (/\D/.test(val)) {
+                            addError($.fn[pluginName].errors.onlyDigits);
+                            return false;
+                        }
+
+                        return true;
+                    },
         isEmail     : function(val, addError) {
-                        this.noSpecial(val, addError);
-                        !/^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/.test(val)
-                                && addError($.fn[pluginName].errors.isEmail);
-                      },
-        noSpecial     : function(val, addError) {
+                        if (this.noSpecial(val, addError)) {
+                            if (/^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/.test(val)) {
+                                return true;
+                            } else {
+                                addError($.fn[pluginName].errors.isEmail);
+                            }
+                        }
+
+                        return false;
+                    },
+        noSpecial   : function(val, addError) {
                         // See http://unicode-table.com
-                        /[\u0000-\u001F\u0080-\u009F]/.test(val)
-                                            && addError($.fn[pluginName].errors.noSpecial);
-                      },
-        noAlpha       : function(val, addError) {
-                        /[a-zA-Z]/.test(val) && addError($.fn[pluginName].errors.noAlpha);
-                      },
-        noForeign     : function(val, addError) {
-                        /[\u00C0-\u1FFFF]/.test(val) && addError($.fn[pluginName].errors.noForeign);
-                      }
+                        if (/[\u0000-\u001F\u0080-\u009F]/.test(val)) {
+                            addError($.fn[pluginName].errors.noSpecial);
+                            return false;
+                        }
+
+                        return true;
+                    },
+        noAlpha     : function(val, addError) {
+                        if (/[a-zA-Z]/.test(val)) {
+                            addError($.fn[pluginName].errors.noAlpha);
+
+                            return false;
+                        }
+
+                        return true;
+                    },
+        noForeign   : function(val, addError) {
+                        if (/[\u00C0-\u1FFFF]/.test(val)) {
+                            addError($.fn[pluginName].errors.noForeign);
+                            return false;
+                        }
+
+                        return true;
+                    }
     };
 
     function createInstance(element, options) {
