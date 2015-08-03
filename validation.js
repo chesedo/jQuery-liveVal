@@ -46,6 +46,7 @@
                             options
                         );
 
+        this._autoChecks();
         // Holds error messages of checker(s) that failed
         this.errors = '';
 
@@ -142,15 +143,33 @@
                 return;
             }
 
-            var check = this.options.check
-                ,pos = check.indexOf('(') === -1 ? check.length : check.indexOf('(')
-                ,params = check.slice(pos +1, -1);
+            // Split check list into array
+            var check = this.options.check.match(/\w+(?:\:\s?\{.+?\})?/g)
+                ,checks = [];
 
-            check = check.slice(0, pos);
-            params = JSON.parse('{' + params + '}');
+            // Run through array to find valid checks
+            for (var i = 0; i < check.length; i++) {
+                var pos = check[i].indexOf(':') === -1 ? check[i].length : check[i].indexOf(':')
+                    ,name = check[i].slice(0, pos);
 
-            // Check function exists before it is enables and that enable is set
-            if (typeof $.fn[pluginName].checks[check] === 'function') {
+                // Check if this function exists in checks
+                if (typeof $.fn[pluginName].checks[name] === 'function') {
+                    var params = check[i].slice(pos +1);
+
+                    params = params.length === 0 ? new Object() : JSON.parse(params);
+                    // Add it to checks
+                    checks.push(new Object({
+                                    'name': name
+                                    ,'params': params
+                                }));
+                } else {
+                    console.log(name + ' is not a function that exists in $.fn.' +
+                                                                    pluginName + '.checks');
+                }
+            }
+
+            // Check if there are any checks
+            if (checks.length > 0) {
                 this.options.enabledChecker = true;
                 /*
                 Input events detect autocomplete with pastes
@@ -168,17 +187,17 @@
                     // Do not call checker on empty values
                     var val = $e.val();
                     if (val !== '') {
-                        // Call the checker with the value
+                        // Call the checkers with the value
                         // Also provide a callback to the _addError function setting its this
-                        $.fn[pluginName].checks[check]($e.val(), this._addError.bind(this), params);
+                        for (var i = 0; i < checks.length; i++) {
+                            $.fn[pluginName].checks[checks[i].name]($e.val(), this._addError.bind(this), checks[i].params);
+                        };
                     }
 
                     // Update tooltip with new errors
                     this._updateTooltip();
                 }, this));
             } else {
-                console.log(check + ' is not a function that exists in $.fn.' +
-                                                                    pluginName + '.checks');
                 this.options.enableChecker = false;
             }
         },
@@ -247,6 +266,65 @@
         },
         _addError: function(error) {
             this.errors += this.errors === '' ? error : '<br />' + error;
+        },
+        _autoChecks: function() {
+            var $e = this.$element;
+
+            // Check if has min or max for range
+            if ($e.attr('min') !== undefined || $e.attr('max') !== undefined) {
+                var range = new Object();
+                if ($e.attr('min') !== undefined) {
+                    range.min = $e.attr('min');
+                }
+                if ($e.attr('max') !== undefined) {
+                    range.max = $e.attr('max');
+                }
+
+                this._addCheck('range', range);
+            }
+
+            // Check if has minlength or maxlength for length
+            if ($e.attr('minlength') !== undefined || $e.attr('maxlength') !== undefined) {
+                var length = new Object();
+                if ($e.attr('minlength') !== undefined) {
+                    length.min = $e.attr('minlength');
+                }
+                if ($e.attr('maxlength') !== undefined) {
+                    length.max = $e.attr('maxlength');
+                }
+
+                this._addCheck('length', length);
+            }
+        },
+        _addCheck: function(name, params) {
+            var str = '';
+            if (this.options.check !== undefined && this.options.check !== '') {
+                str += ', ';
+            } else {
+                this.options.check = '';
+            }
+
+            str += name;
+
+            if (typeof params === 'object') {
+                var paramLen = Object.keys(params).length
+                    ,p = 0;
+
+                str += ':{';
+
+                for (param in params) {
+                    ++p;
+                    str += '"' + param + '":' + params[param];
+
+                    if (paramLen !== p) {
+                        str += ',';
+                    }
+                }
+
+                str += '}';
+            }
+
+            this.options.check += str;
         }
     };
 
