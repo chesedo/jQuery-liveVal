@@ -46,6 +46,7 @@
                             options
                         );
 
+        this._autoChecks();
         // Holds error messages of checker(s) that failed
         this.errors = '';
 
@@ -265,6 +266,65 @@
         },
         _addError: function(error) {
             this.errors += this.errors === '' ? error : '<br />' + error;
+        },
+        _autoChecks: function() {
+            var $e = this.$element;
+
+            // Check if has min or max for range
+            if ($e.attr('min') !== undefined || $e.attr('max') !== undefined) {
+                var range = new Object();
+                if ($e.attr('min') !== undefined) {
+                    range.min = $e.attr('min');
+                }
+                if ($e.attr('max') !== undefined) {
+                    range.max = $e.attr('max');
+                }
+
+                this._addCheck('range', range);
+            }
+
+            // Check if has minlength or maxlength for length
+            if ($e.attr('minlength') !== undefined || $e.attr('maxlength') !== undefined) {
+                var length = new Object();
+                if ($e.attr('minlength') !== undefined) {
+                    length.min = $e.attr('minlength');
+                }
+                if ($e.attr('maxlength') !== undefined) {
+                    length.max = $e.attr('maxlength');
+                }
+
+                this._addCheck('length', length);
+            }
+        },
+        _addCheck: function(name, params) {
+            var str = '';
+            if (this.options.check !== undefined && this.options.check !== '') {
+                str += ', ';
+            } else {
+                this.options.check = '';
+            }
+
+            str += name;
+
+            if (typeof params === 'object') {
+                var paramLen = Object.keys(params).length
+                    ,p = 0;
+
+                str += ':{';
+
+                for (param in params) {
+                    ++p;
+                    str += '"' + param + '":' + params[param];
+
+                    if (paramLen !== p) {
+                        str += ',';
+                    }
+                }
+
+                str += '}';
+            }
+
+            this.options.check += str;
         }
     };
 

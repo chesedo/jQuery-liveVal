@@ -39,7 +39,14 @@ isForeign | Filter out foreign (new lines, tabs, ctrl keys) characters
 range(<"min"><,"max">) | Check that input is numbers between a min and/or max range
 length(<"min"><,"max">) | Check that input is between a min and/or max characters long
 
-### Checks with extra parameters and multiple checks
+#### Auto checks
+The `range` and `length` check is applied automatically when any of the following attributes are detected:
+- min
+- max
+- maxlength
+- minlength
+
+#### Checks with extra parameters and multiple checks
 The extra parameters for checks should be be given as an object list - `"parameter": value`. It is important that the key be in double quotes.
 
 To run multiple check separate them with a comma or create your own check that uses both.
