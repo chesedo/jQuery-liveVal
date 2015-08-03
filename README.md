@@ -37,12 +37,20 @@ noSpecial | Check that no special characters are in input
 noAlpha | Check that no normal alphabetical characters are in input
 isForeign | Filter out foreign (new lines, tabs, ctrl keys) characters
 
+### Checks with extra parameters
+The extra parameters for checks should be enclosed in round brackets and be given as an object list - `"parameter": value`. It is important that the key be in double quotes.
+
 #### Adding your own checkers
 Others can easily be added to `$.fn.validator.checks.(newCheck)`. Example of the `noDigits` check
 
 ```javascript
 $.fn.validator.checks.noDigits: function(val, addError) {
-    /\d/.test(val) && addError($.fn.validator.errors.noDigits);
+    if (/\d/.test(val)) {
+        addError($.fn[pluginName].errors.noDigits);
+        return false;
+    }
+
+    return true;
 }
 ```
 
@@ -50,8 +58,10 @@ $.fn.validator.checks.noDigits: function(val, addError) {
 
 `addError` is a callback function used to add the error if the check failed.
 
-#### Calling other checkers in a checker
-You can also call one of the build-in checker or your own as part of any check. Example of the `isText` that does this
+The return status is only used by other check to make sure a condition is met before they run, so it is optional.
+
+#### Calling other checkers in a checker and parameters
+You can also call one of the build-in checkers or your own as part of any check. Example of the `range` check that does this and that also accepts parameters
 
 ```javascript
 $.fn.validator.checks.isText: function(val, addError) {

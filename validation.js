@@ -142,7 +142,13 @@
                 return;
             }
 
-            var check = this.options.check;
+            var check = this.options.check
+                ,pos = check.indexOf('(') === -1 ? check.length : check.indexOf('(')
+                ,params = check.slice(pos +1, -1);
+
+            check = check.slice(0, pos);
+            params = JSON.parse('{' + params + '}');
+
             // Check function exists before it is enables and that enable is set
             if (typeof $.fn[pluginName].checks[check] === 'function') {
                 this.options.enabledChecker = true;
@@ -158,9 +164,14 @@
 
                     e.stopPropagation();
                     this.errors = '';
-                    // Call the checker with the value
-                    // Also provide a callback to the _addError function setting its this
-                    $.fn[pluginName].checks[check]($e.val(), this._addError.bind(this));
+
+                    // Do not call checker on empty values
+                    var val = $e.val();
+                    if (val !== '') {
+                        // Call the checker with the value
+                        // Also provide a callback to the _addError function setting its this
+                        $.fn[pluginName].checks[check]($e.val(), this._addError.bind(this), params);
+                    }
 
                     // Update tooltip with new errors
                     this._updateTooltip();
