@@ -39,8 +39,10 @@ isForeign | Filter out foreign (new lines, tabs, ctrl keys) characters
 range(<"min"><,"max">) | Check that input is numbers between a min and/or max range
 length(<"min"><,"max">) | Check that input is between a min and/or max characters long
 
-### Checks with extra parameters
-The extra parameters for checks should be enclosed in round brackets and be given as an object list - `"parameter": value`. It is important that the key be in double quotes.
+### Checks with extra parameters and multiple checks
+The extra parameters for checks should be be given as an object list - `"parameter": value`. It is important that the key be in double quotes.
+
+To run multiple check separate them with a comma or create your own check that uses both.
 
 #### Adding your own checkers
 Others can easily be added to `$.fn.validator.checks.(newCheck)`. Example of the `noDigits` check
