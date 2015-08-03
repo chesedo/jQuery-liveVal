@@ -319,6 +319,10 @@
                             min: 'Value should be %d or more'
                             ,max: 'Value should be %d or less'
                            }
+        ,length           : {
+                            min: 'Value should be %d characters or more'
+                            ,max: 'Value should be %d characters or less'
+                           }
     };
     /*
      * Build in checks
@@ -410,6 +414,18 @@
                         }
 
                         return false;
+                    },
+        length      : function(val, addError, params) {
+                        if (params.min !== undefined && val.length < params.min) {
+                            addError($.fn[pluginName].errors.length.min.replace('%d', params.min));
+                            return false;
+                        }
+                        if (params.max !== undefined && val.length > params.max) {
+                            addError($.fn[pluginName].errors.length.max.replace('%d', params.max));
+                            return false;
+                        }
+
+                        return true;
                     }
     };
 
