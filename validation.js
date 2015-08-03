@@ -142,7 +142,13 @@
                 return;
             }
 
-            var check = this.options.check;
+            var check = this.options.check
+                ,pos = check.indexOf('(') === -1 ? check.length : check.indexOf('(')
+                ,params = check.slice(pos +1, -1);
+
+            check = check.slice(0, pos);
+            params = JSON.parse('{' + params + '}');
+
             // Check function exists before it is enables and that enable is set
             if (typeof $.fn[pluginName].checks[check] === 'function') {
                 this.options.enabledChecker = true;
@@ -158,9 +164,14 @@
 
                     e.stopPropagation();
                     this.errors = '';
-                    // Call the checker with the value
-                    // Also provide a callback to the _addError function setting its this
-                    $.fn[pluginName].checks[check]($e.val(), this._addError.bind(this));
+
+                    // Do not call checker on empty values
+                    var val = $e.val();
+                    if (val !== '') {
+                        // Call the checker with the value
+                        // Also provide a callback to the _addError function setting its this
+                        $.fn[pluginName].checks[check]($e.val(), this._addError.bind(this), params);
+                    }
 
                     // Update tooltip with new errors
                     this._updateTooltip();
@@ -304,6 +315,14 @@
         ,noSpecial       : 'No special keys allowed'
         ,noAlpha         : 'No alphabeticals allowed'
         ,noForeign       : 'No foreign characters allowed'
+        ,range           : {
+                            min: 'Value should be %d or more'
+                            ,max: 'Value should be %d or less'
+                           }
+        ,length           : {
+                            min: 'Value should be %d characters or more'
+                            ,max: 'Value should be %d characters or less'
+                           }
     };
     /*
      * Build in checks
@@ -311,36 +330,103 @@
      */
     $.fn[pluginName].checks = {
         noDigits    : function(val, addError) {
-                        /\d/.test(val) && addError($.fn[pluginName].errors.noDigits);
-                      },
+                        if (/\d/.test(val)) {
+                            addError($.fn[pluginName].errors.noDigits);
+                            return false;
+                        }
+
+                        return true;
+                    },
         noSymbols   : function(val, addError) {
                         // See http://unicode-table.com
-                        /[!-/:-@{-~[-`]/.test(val) && addError($.fn[pluginName].errors.noSymbols);
-                      },
+                        if (/[!-/:-@{-~[-`]/.test(val)) {
+                            addError($.fn[pluginName].errors.noSymbols);
+                            return false;
+                        }
+
+                        return true;
+                    },
         isText      : function(val, addError) {
-                        this.noDigits(val, addError);
-                        this.noSymbols(val, addError);
-                        this.noSpecial(val, addError);
-                      },
-        onlyDigits    : function(val, addError) {
-                        /\D/.test(val) && addError($.fn[pluginName].errors.onlyDigits);
-                      },
+                        return (
+                            (this.noDigits(val, addError)
+                            + this.noSymbols(val, addError)
+                            + this.noSpecial(val, addError))
+                            === 3
+                            );
+                    },
+        onlyDigits  : function(val, addError) {
+                        if (/\D/.test(val)) {
+                            addError($.fn[pluginName].errors.onlyDigits);
+                            return false;
+                        }
+
+                        return true;
+                    },
         isEmail     : function(val, addError) {
-                        this.noSpecial(val, addError);
-                        !/^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/.test(val)
-                                && addError($.fn[pluginName].errors.isEmail);
-                      },
-        noSpecial     : function(val, addError) {
+                        if (this.noSpecial(val, addError)) {
+                            if (/^([a-zA-Z0-9_\.\-])+\@(([a-zA-Z0-9\-])+\.)+([a-zA-Z0-9]{2,4})+$/.test(val)) {
+                                return true;
+                            } else {
+                                addError($.fn[pluginName].errors.isEmail);
+                            }
+                        }
+
+                        return false;
+                    },
+        noSpecial   : function(val, addError) {
                         // See http://unicode-table.com
-                        /[\u0000-\u001F\u0080-\u009F]/.test(val)
-                                            && addError($.fn[pluginName].errors.noSpecial);
-                      },
-        noAlpha       : function(val, addError) {
-                        /[a-zA-Z]/.test(val) && addError($.fn[pluginName].errors.noAlpha);
-                      },
-        noForeign     : function(val, addError) {
-                        /[\u00C0-\u1FFFF]/.test(val) && addError($.fn[pluginName].errors.noForeign);
-                      }
+                        if (/[\u0000-\u001F\u0080-\u009F]/.test(val)) {
+                            addError($.fn[pluginName].errors.noSpecial);
+                            return false;
+                        }
+
+                        return true;
+                    },
+        noAlpha     : function(val, addError) {
+                        if (/[a-zA-Z]/.test(val)) {
+                            addError($.fn[pluginName].errors.noAlpha);
+
+                            return false;
+                        }
+
+                        return true;
+                    },
+        noForeign   : function(val, addError) {
+                        if (/[\u00C0-\u1FFFF]/.test(val)) {
+                            addError($.fn[pluginName].errors.noForeign);
+                            return false;
+                        }
+
+                        return true;
+                    },
+        range       : function(val, addError, params) {
+                        if (this.onlyDigits(val, addError)) {
+                            if (params.min !== undefined && val < params.min) {
+                                addError($.fn[pluginName].errors.range.min.replace('%d', params.min));
+                                return false;
+                            }
+                            if (params.max !== undefined && val > params.max) {
+                                addError($.fn[pluginName].errors.range.max.replace('%d', params.max));
+                                return false;
+                            }
+
+                            return true;
+                        }
+
+                        return false;
+                    },
+        length      : function(val, addError, params) {
+                        if (params.min !== undefined && val.length < params.min) {
+                            addError($.fn[pluginName].errors.length.min.replace('%d', params.min));
+                            return false;
+                        }
+                        if (params.max !== undefined && val.length > params.max) {
+                            addError($.fn[pluginName].errors.length.max.replace('%d', params.max));
+                            return false;
+                        }
+
+                        return true;
+                    }
     };
 
     function createInstance(element, options) {
