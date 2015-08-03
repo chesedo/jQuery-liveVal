@@ -315,6 +315,10 @@
         ,noSpecial       : 'No special keys allowed'
         ,noAlpha         : 'No alphabeticals allowed'
         ,noForeign       : 'No foreign characters allowed'
+        ,range           : {
+                            min: 'Value should be %d or more'
+                            ,max: 'Value should be %d or less'
+                           }
     };
     /*
      * Build in checks
@@ -390,6 +394,22 @@
                         }
 
                         return true;
+                    },
+        range       : function(val, addError, params) {
+                        if (this.onlyDigits(val, addError)) {
+                            if (params.min !== undefined && val < params.min) {
+                                addError($.fn[pluginName].errors.range.min.replace('%d', params.min));
+                                return false;
+                            }
+                            if (params.max !== undefined && val > params.max) {
+                                addError($.fn[pluginName].errors.range.max.replace('%d', params.max));
+                                return false;
+                            }
+
+                            return true;
+                        }
+
+                        return false;
                     }
     };
 

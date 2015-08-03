@@ -36,6 +36,7 @@ isEmail | Checks if input contains a valid email
 noSpecial | Check that no special characters are in input
 noAlpha | Check that no normal alphabetical characters are in input
 isForeign | Filter out foreign (new lines, tabs, ctrl keys) characters
+range(<"min"><,"max">) | Check that input is numbers between a min and/or max range
 
 ### Checks with extra parameters
 The extra parameters for checks should be enclosed in round brackets and be given as an object list - `"parameter": value`. It is important that the key be in double quotes.
@@ -64,13 +65,24 @@ The return status is only used by other check to make sure a condition is met be
 You can also call one of the build-in checkers or your own as part of any check. Example of the `range` check that does this and that also accepts parameters
 
 ```javascript
-$.fn.validator.checks.isText: function(val, addError) {
-    this.noDigits(val, addError);
-    this.noSymbols(val, addError);
-    this.noSpecial(val, addError);
+$.fn.validator.checks.range: function(val, addError, params) {
+    if (this.onlyDigits(val, addError)) {
+        if (params.min !== undefined && val < params.min) {
+            addError($.fn[pluginName].errors.range.min.replace('%d', params.min));
+            return false;
+        }
+        if (params.max !== undefined && val > params.max) {
+            addError($.fn[pluginName].errors.range.max.replace('%d', params.max));
+            return false;
+        }
+
+        return true;
+    }
+
+    return false;
 }
 ```
-As you can see each check will just append its own errors to other checks.
+Here it will check that the input is a number (and add the error if it is not), before running the internal checks.
 
 ### Changing/Translating the errors
 The defaults can be overwritten at `$.fn.validator.errors.(error) = 'new error';` before calling the plugin.
