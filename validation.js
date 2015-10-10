@@ -80,7 +80,7 @@
                                         } );
 
                 // Enable checker if needed
-                if ( this.options.enableChecker && this.options.check !== undefined ) {
+                if ( this.options.enableChecker && this.options.check !== '' ) {
                     this.enableChecker();
                 } else {
                     this.options.enabledChecker = false;
@@ -125,7 +125,7 @@
 
                 // If is a checkbox
                 this.setRequired( this.options.required );
-                if ( this.options.enableChecker && this.options.check !== undefined ) {
+                if ( this.options.enableChecker && this.options.check !== '' ) {
                     this.enableChecker();
                 }
                 $e.on( 'blur.' + pluginName, $.proxy( function( e ) {
@@ -159,33 +159,31 @@
             }
 
             // Split check list into array
-            // TODO: move the parameters to data-*
-            var check = this.options.check.match( /\w+(?:\:\s?\{.+?\})?/g ),
-                checks = [];
+            var checks = this.options.check.split( ', ' ),
+                checksOK = [];
 
             // Run through array to find valid checks
-            for ( var i = 0; i < check.length; i++ ) {
-                var pos = check[ i ].indexOf( ':' ) === -1 ? check[ i ].length : check[ i ].indexOf( ':' ),
-                    name = check[ i ].slice( 0, pos );
+            for ( var i = 0; i < checks.length; i++ ) {
+                var check = checks[ i ];
 
                 // Check if this function exists in checks
-                if ( typeof $.fn[ pluginName ].checks[ name ] === 'function' ) {
-                    var params = check[ i ].slice( pos + 1 );
+                if ( typeof $.fn[ pluginName ].checks[ check ] === 'function' ) {
+                    var params = $e.data( check + '-params' );
 
-                    params = params.length === 0 ? {} : JSON.parse( params );
+                    params = params === undefined ? {} : params;
 
                     // Add it to checks
-                    checks.push( {
-                                    'name': name,
+                    checksOK.push( {
+                                    'name': check,
                                     'params': params
                                 } );
                 } else {
-                    console.log( name + ' is not a function that exists in $.fn.' + pluginName + '.checks' );
+                    console.log( check + ' is not a function that exists in $.fn.' + pluginName + '.checks' );
                 }
             }
 
             // Check if there are any checks
-            if ( checks.length > 0 ) {
+            if ( checksOK.length > 0 ) {
                 this.options.enabledChecker = true;
 
                 /*
@@ -209,9 +207,9 @@
 
                         // Call the checkers with the value
                         // Also provide a callback to the _addError function setting its this
-                        for ( var i = 0; i < checks.length; i++ ) {
+                        for ( var i = 0; i < checksOK.length; i++ ) {
                             $.fn[ pluginName ]
-                             .checks[ checks[ i ].name ]( $e.val(), this._addError.bind( this ), checks[ i ].params );
+                             .checks[ checksOK[ i ].name ]( $e.val(), this._addError.bind( this ), checksOK[ i ].params );
                         }
                     }
 
@@ -335,34 +333,15 @@
             }
         },
         _addCheck: function( name, params ) {
-            var str = '';
-            if ( this.options.check !== undefined && this.options.check !== '' ) {
-                str += ', ';
-            } else {
-                this.options.check = '';
-            }
-
-            str += name;
-
             if ( typeof params === 'object' ) {
-                var paramLen = Object.keys( params ).length,
-                    p = 0;
-
-                str += ':{';
-
-                for ( var param in params ) {
-                    ++p;
-                    str += '"' + param + '":' + params[ param ];
-
-                    if ( paramLen !== p ) {
-                        str += ',';
-                    }
-                }
-
-                str += '}';
+                this.$element.data( name + '-params', params );
             }
 
-            this.options.check += str;
+            if ( this.options.check !== undefined && this.options.check !== '' ) {
+                name = ', ' + name;
+            }
+
+            this.options.check += name;
         }
     };
 
@@ -422,7 +401,8 @@
         errorClass    : 'has-warning', // Class to add to parent if input has errors
         required      : false, // Whether field is required - will detect if required prop is present
         requiredHTML  : '<span class="text-danger pull-right">&nbsp;*</span>', // HTML to add to required inputs' labels
-        enableChecker : true // Whether checker is enabled
+        enableChecker : true, // Whether checker is enabled
+        check         : ''
     };
     /*
      * Default error messages for checkers which can be overwritten for translation purposes
