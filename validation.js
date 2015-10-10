@@ -57,6 +57,9 @@
         // Indicates whether input data is missing if required
         this.missing = false;
 
+        // Get element to add/remove classes to/from
+        this.$parent = this.$element.parents( this.options.parentSel );
+
         // Initialize the plugin instance
         this.init();
     }
@@ -107,15 +110,12 @@
                         this.errors = '';
                     }
 
-                    $e.parents( this.options.parentSel )
-                      .removeClass( this.options.missingClass + ' ' + this.options.errorClass );
+                    this.$parent.removeClass( this.options.missingClass + ' ' + this.options.errorClass );
 
                     if ( this.missing ) {
-                        $e.parents( this.options.parentSel )
-                          .addClass( this.options.missingClass );
+                        this.$parent.addClass( this.options.missingClass );
                     } else if ( this.errors !== '' ) {
-                        $e.parents( this.options.parentSel )
-                          .addClass( this.options.errorClass );
+                        this.$parent.addClass( this.options.errorClass );
                     }
 
                     // So that it doesn't hang there when input does not have focus
@@ -134,21 +134,18 @@
                     // If unchecked and required then it is missing
                     this.missing = $e.is( ':checked' ) ? false : this.options.required;
 
-                    $e.parents( this.options.parentSel )
-                       [ this.missing ? 'addClass' : 'removeClass' ]( this.options.missingClass );
+                    this.$parent[ this.missing ? 'addClass' : 'removeClass' ]( this.options.missingClass );
                 }, this ) );
             }
         },
         destroy: function() {
-            var $e = this.$element;
 
             // Remove classes, listeners and tooltip
-            $e.parents( this.options.parentSel )
-              .removeClass( this.options.missingClass + ' ' + this.options.errorClass );
+            this.$parent.removeClass( this.options.missingClass + ' ' + this.options.errorClass );
 
-            $e.off( '.' + pluginName );
-            $e.tooltip( 'destroy' );
-            $e.removeData();
+            this.$element.off( '.' + pluginName );
+            this.$element.tooltip( 'destroy' );
+            this.$element.removeData();
         },
         enableChecker: function() {
             var $e = this.$element;
@@ -226,18 +223,16 @@
             }
         },
         disableChecker: function() {
-            var $e = this.$element;
 
             // Set new value
             this.options.enabledChecker = false;
             this.errors = '';
 
             // Turn listeners off
-            $e.off( 'input.' + pluginName + ' propertychange.' + pluginName );
+            this.$element.off( 'input.' + pluginName + ' propertychange.' + pluginName );
 
             // Update classes
-            $e.parents( this.options.parentSel )
-              .removeClass( this.options.errorClass );
+            this.$parent.removeClass( this.options.errorClass );
 
             // Update tooltip
             this._updateTooltip();
@@ -296,8 +291,7 @@
                     // Animate it out then remove
                     $label.children( $requiredHtml )
                           .animate( { 'width': '0' }, 500, function() {$( this ).remove();} );
-                    $e.parents( this.options.parentSel )
-                      .removeClass( this.options.missingClass );
+                    this.$parent.removeClass( this.options.missingClass );
                 }
             }
         },
@@ -556,10 +550,4 @@
             return true;
         }
     };
-
-    function createInstance( element, options ) {
-        if ( !$.data( element, 'plugin_' + pluginName ) ) {
-            $.data( element, 'plugin_' + pluginName, new Plugin( element, options ) );
-        }
-    }
 } )( jQuery, window, document );
