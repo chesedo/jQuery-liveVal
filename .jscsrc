@@ -1,0 +1,11 @@
+{
+    "preset": "jquery",
+    "validateQuoteMarks": { "mark": "'", "escape": true },
+    "maximumLineLength": {
+        "value": 120,
+        "tabSize": 4,
+        "allExcept": ["urlComments", "regex"]
+    },
+    "validateIndentation": 4,
+    "disallowSpaceAfterObjectKeys": false
+}
